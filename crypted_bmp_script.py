@@ -1,4 +1,5 @@
 from math import sqrt
+from itertools import cycle
 
 MAXBYTE = 256
 HEADERSIZE = 14
@@ -28,5 +29,8 @@ original_bytes += (bits).to_bytes(2, byteorder='big')
 original_bytes += (compression).to_bytes(4, byteorder='big') + (x * x).to_bytes(4, byteorder='big')
 
 key = [x ^ y for (x, y) in zip(original_bytes[:KEYLEN], crypted_bytes[:KEYLEN])]
-with open('key', 'wb') as fout:
-	print(*key)
+original_bytes = [(x ^ y).to_bytes(1, byteorder='big') for (x, y) in zip(crypted_bytes, cycle(key))]
+
+with open('qr.enc.bmp', 'wb') as fout:
+	for b in original_bytes:
+		fout.write(b)
