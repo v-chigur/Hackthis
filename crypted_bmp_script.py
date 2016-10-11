@@ -5,7 +5,7 @@ MAXBYTE = 256
 HEADERSIZE = 14
 KEYLEN = 36
 
-with open('qr.enc.bmp', 'rb') as fin:
+with open('qr_enc.bmp', 'rb') as fin:
 	crypted_bytes = fin.read()
 
 bf_type, bf_size = ['B', 'M'], 4
@@ -18,8 +18,8 @@ original_bytes= ''.join(bf_type).encode() + fin_size.to_bytes(bf_size, byteorder
 original_bytes += 2 * bf_res.to_bytes(2, byteorder='little') + (indent).to_bytes(4, byteorder='little')
 original_bytes += (bi_size).to_bytes(4, byteorder='little')
 
-x, mx = 4, 4
-while (mx * mx <= fin_size - indent):
+x, mx, s = 4, 4, (fin_size - indent) // 3
+while (mx * mx <= s):
 	if mx % 4 == 0:
 		x = mx
 	mx += 1
@@ -31,6 +31,6 @@ original_bytes += (compression).to_bytes(4, byteorder='little') + (x * x).to_byt
 key = [x ^ y for (x, y) in zip(original_bytes[:KEYLEN], crypted_bytes[:KEYLEN])]
 original_bytes = [(x ^ y).to_bytes(1, byteorder='little') for (x, y) in zip(crypted_bytes, cycle(key))]
 
-with open('qr.enc.bmp', 'wb') as fout:
+with open('original.bmp', 'wb') as fout:
 	for b in original_bytes:
 		fout.write(b)
