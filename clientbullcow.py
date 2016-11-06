@@ -8,27 +8,29 @@ while True:
 	alf, var = [], []
 	for i in range(10):
 		conn.send(('%01x' % i).encode("utf-8") * 4 + b"\n")
-		bulls = int(conn.recv(9).decode("utf-8").split()[0])
-		conn.recv(1)
+		bulls = int(conn.recv(3).decode("utf-8").split()[0])
 		for j in range(bulls):
 			alf.append(str(i))
-	for i in range(1000, 9999):
-		abcd = [int(s) for s in list(str(i))]
-		if abcd[0] in [abcd[1], abcd[2], abcd[3]]:
-			continue
-		elif abcd[1] in [abcd[2], abcd[3]]:
-			continue
-		elif abcd[2] == abcd[3]:
-			continue
-		var.append(abcd)
-	for v in vars:
-		data = ''.join([alf[i] for i in v])
+	abcd = [0, 0, 0, 0]
+	for abcd[0] in range(4):
+		for abcd[1] in range(4):
+			if abcd[0] == abcd[1]:
+				continue
+			for abcd[2] in range(4):
+				if abcd[2] in [abcd[0], abcd[1]]:
+					continue
+				for abcd[3] in range(4):
+					if abcd[3] in [abcd[0], abcd[1], abcd[2]]:
+						continue
+					var.append(''.join([alf[i] for i in abcd]))
+	for data in var:
 		conn.send(data.encode("utf-8") + b"\n")
-		bc = conn.recv(9).decode("utf-8").split()
+		bc = conn.recv(3).decode("utf-8").split()
 		bulls, cows = int(bc[0]), int(bc[1])
 
 		if bulls == 4 or data == b"":
-			print("win")
+			print("win", data)
+			break
 		else:
 			print("don't give up")
 conn.close()
