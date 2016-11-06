@@ -7,13 +7,16 @@ conn, addr = sock.accept()
 conn.settimeout(60)
 
 num = list(str(random.randint(1000, 9999)))
-#print("imagined num: " + ''.join(num))
+print("imagined num: " + ''.join(num))
 bulls, cows = 0, 0
 data = b""
 symb, i = conn.recv(1), 0
 while symb:
 	if symb == b"\n":
 		print(bulls, cows)
+		if bulls == 4:
+			num = list(str(random.randint(1000, 9999)))
+			print("imagined num: " + ''.join(num))
 		data = (str(bulls) + " " + str(cows)).encode("utf-8")
 		conn.send(data)
 		bulls, cows = 0, 0
