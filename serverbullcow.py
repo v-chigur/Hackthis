@@ -1,30 +1,40 @@
 import socket, time, sys, random
 
-sock = socket.socket()
-sock.bind(("", int(sys.argv[1])))
-sock.listen(1)
-conn, addr = sock.accept()
-conn.settimeout(60)
+def gen_number():
+	return str(random.randint(1000, 9999))
 
-num = list(str(random.randint(1000, 9999)))
-print("imagined num: " + ''.join(num))
-bulls, cows = 0, 0
-data = b""
-symb, i = conn.recv(1), 0
-while symb:
-	if symb == b"\n":
-		print(bulls, cows)
-		if bulls == 4:
-			num = list(str(random.randint(1000, 9999)))
-			print("imagined num: " + ''.join(num))
-		data = (str(bulls) + " " + str(cows)).encode("utf-8")
-		conn.send(data)
-		bulls, cows = 0, 0
-		symb, i = conn.recv(1), 0
-	else:
-		if symb.decode("utf-8") == num[i]:
-			bulls += 1
-		elif symb.decode("utf-8") in num:
-			cows += 1
-		symb, i = conn.recv(1), i + 1
-conn.close()
+def game(conn, addr, num):
+	bulls, cows = 0, 0
+	data = b""
+	symb, ind = conn.recv(1), 0
+	while symb:
+		if symb == b"\n":
+			print(bulls, cows)
+			if bulls == 4:
+				print("win")
+				main(conn, addr)
+			data = (str(bulls) + " " + str(cows)).encode("utf-8")
+			conn.send(data)
+			bulls, cows = 0, 0
+			symb, ind = conn.recv(1), 0
+		else:
+			if symb.decode("utf-8") == num[ind]:
+				bulls += 1
+			elif symb.decode("utf-8") in num:
+				cows += 1
+			symb, ind = conn.recv(1), ind + 1
+
+
+def main(conn, addr):
+	conn.settimeout(60)
+	num = list(gen_number())
+	game(conn, addr, num)
+
+
+if __name__ == "__main__":
+	sock = socket.socket()
+	sock.bind(("", int(sys.argv[1])))
+	sock.listen(100500)
+
+	while True:
+		main(*sock.accept())
