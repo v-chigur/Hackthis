@@ -1,36 +1,32 @@
-import socket, sys
+import socket, sys, itertools
 
-conn = socket.socket()
-conn.connect(("127.0.0.1", int(sys.argv[1])))
-
-while True:
+def get_vars(conn):
 	bulls, cows = 0, 0
-	alf, var = [], []
+	alf = []
 	for i in range(10):
 		conn.send(('%01x' % i).encode("utf-8") * 4 + b"\n")
 		bulls = int(conn.recv(3).decode("utf-8").split()[0])
 		for j in range(bulls):
 			alf.append(str(i))
-	abcd = [0, 0, 0, 0]
-	for abcd[0] in range(4):
-		for abcd[1] in range(4):
-			if abcd[0] == abcd[1]:
-				continue
-			for abcd[2] in range(4):
-				if abcd[2] in [abcd[0], abcd[1]]:
-					continue
-				for abcd[3] in range(4):
-					if abcd[3] in [abcd[0], abcd[1], abcd[2]]:
-						continue
-					var.append(''.join([alf[i] for i in abcd]))
-	for data in var:
+	return itertools.permutations(tuple(alf))
+
+def play(conn):
+	for abcd in get_vars(conn):
+		data = ''.join(abcd)
 		conn.send(data.encode("utf-8") + b"\n")
 		bc = conn.recv(3).decode("utf-8").split()
 		bulls, cows = int(bc[0]), int(bc[1])
 
-		if bulls == 4 or data == b"":
+		if bulls == 4:
 			print("win", data)
-			break
-		else:
-			print("don't give up")
-conn.close()
+			main(conn)
+
+def main(conn):
+	play(conn)
+
+if __name__ == "__main__":
+	conn = socket.socket()
+	conn.connect(("127.0.0.1", int(sys.argv[1])))
+
+	while True:
+		main(conn)
