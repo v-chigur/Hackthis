@@ -10,11 +10,11 @@ def game(conn, addr, num):
 	while symb:
 		if symb == b"\n":
 			print(bulls, cows)
+			data = (str(bulls) + " " + str(cows)).encode("utf-8")
+			conn.send(data)
 			if bulls == 4:
 				print("win")
 				main(conn, addr)
-			data = (str(bulls) + " " + str(cows)).encode("utf-8")
-			conn.send(data)
 			bulls, cows = 0, 0
 			symb, ind = conn.recv(1), 0
 		else:
@@ -24,12 +24,10 @@ def game(conn, addr, num):
 				cows += 1
 			symb, ind = conn.recv(1), ind + 1
 
-
 def main(conn, addr):
 	conn.settimeout(60)
 	num = list(gen_number())
 	game(conn, addr, num)
-
 
 if __name__ == "__main__":
 	sock = socket.socket()
