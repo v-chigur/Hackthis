@@ -11,22 +11,21 @@ def get_vars(conn):
 	return itertools.permutations(tuple(alf))
 
 def play(conn):
-	for abcd in get_vars(conn):
-		data = ''.join(abcd)
-		conn.send(data.encode("utf-8") + b"\n")
-		bc = conn.recv(3).decode("utf-8").split()
-		bulls, cows = int(bc[0]), int(bc[1])
-
-		if bulls == 4:
-			print("win", data)
-			main(conn)
+	while True:
+		for abcd in get_vars(conn):
+			data = ''.join(abcd)
+			conn.send(data.encode("utf-8") + b"\n")
+			bc = conn.recv(3).decode("utf-8").split()
+			bulls, cows = int(bc[0]), int(bc[1])
+	
+			if bulls == 4:
+				print("win", data)
+				break
 
 def main(conn):
 	play(conn)
 
 if __name__ == "__main__":
 	conn = socket.socket()
-	conn.connect(("127.0.0.1", int(sys.argv[1])))
-
-	while True:
-		main(conn)
+	conn.connect(("IP adress of server", int(sys.argv[1])))
+	main(conn)
