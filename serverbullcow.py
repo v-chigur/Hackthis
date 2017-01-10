@@ -1,71 +1,60 @@
-import socket, time, sys, random, threading
-
-max_number_of_connections = 100500
-max_time_for_waiting = 60
+import socket, time, sys, random, threading, json
 
 def gen_number():
-	return str(random.randint(1000, 9999))
+	return random.randint(1000, 9999)
 
-def check_symb(symb, ind):
-	if (symb < b'0' or symb > b'9') and ind < 4:
+def check_data(data, conn):
+	error = 'Error: Sorry, the game requires a four-digit number. Try again to enter it.'
+	info = json.dumps({'status': error, 'bulls': 0, 'cows': 0}).encode('utf-8')
+	try:
+		if data[-1] == b'\n':
+			return True
+		conn.send(info) 
 		return False
-	return True
-
-def check_ind(i):
-	return i == 4
+	except:
+			conn.send(info) 
+			return False                                    
 
 def game(conn, addr):
+	conn.settimeout(60)
 	while True:
-		num = list(gen_number())
+		num = str(gen_number())
 		bulls, cows = 0, 0
-		data = b""
-		symb, ind = conn.recv(1), 0
-		while symb:
-			if not check_symb(symb, ind):
-				print("error")
-				sys.exit()
-			if symb == b"\n":
-				if not check_ind(ind):
-					print(ind)
-					print("error")
-					sys.exit()
-				print(bulls, cows)
-				data = (str(bulls) + " " + str(cows)).encode("utf-8")
-				conn.send(data)
+		data = conn.recv(5)
+		if check_data(data):
+			ind = 0
+			symb = data[ind]
+			state = 'continue'
+			while symb:
 				if bulls == 4:
-					print("win")
+					state = 'won'
+				if ind == 3:
+					info = json.dumps({'status': state, 'bulls': bulls, 'cows': cows}).encode('utf-8')
+					conn.send(info)
 					break
-				bulls, cows = 0, 0
-				symb, ind = conn.recv(1), 0
-			else:
+	
 				if symb.decode("utf-8") == num[ind]:
 					bulls += 1
-				elif symb.decode("utf-8") in num:
+				elif num.find(symb.decode("utf-8")) != -1:
 					cows += 1
-				symb, ind = conn.recv(1), ind + 1
+				symb, ind = data[ind + 1], ind + 1
 
-def main(conn, addr):
-	conn.settimeout(max_time_for_waiting)
-	game(conn, addr)
-
-if __name__ == "__main__":
-	sock = socket.socket()
-	PORT = int(sys.argv[1])
-	sock.bind(("", PORT))
-	sock.listen(max_number_of_connections)
-
+def main(sock):
 	while True:
-		t = threading.Thread(target=main, args=sock.accept())
+		t = threading.Thread(target=game, args=sock.accept())
 		t.daemon = True
 		t.start()
 
+if __name__ == "__main__":
+	sock = socket.socket()
+	try:
+		port = int(sys.argv[1])
+		sock.bind(("", port))
+		sock.listen(100500)
+	except:
+		port = 8888
 
+	sock.bind(("", port))
+	sock.listen(100500)
 
-
-
-
-
-
-
-
-
+	main(sock)
